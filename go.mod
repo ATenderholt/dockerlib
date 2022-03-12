@@ -4,6 +4,8 @@ go 1.17
 
 require (
 	github.com/docker/docker v20.10.13+incompatible
+	github.com/docker/go-connections v0.4.0
+	github.com/google/go-cmp v0.5.6
 	go.uber.org/zap v1.21.0
 )
 
@@ -11,7 +13,6 @@ require (
 	github.com/Microsoft/go-winio v0.5.1 // indirect
 	github.com/containerd/containerd v1.6.1 // indirect
 	github.com/docker/distribution v2.7.1+incompatible // indirect
-	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect

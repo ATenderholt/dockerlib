@@ -31,7 +31,7 @@ func EnsureImage(ctx context.Context, cli *client.Client, image string) error {
 	reader, err := cli.ImagePull(ctx, image, types.ImagePullOptions{})
 	if err != nil {
 		logger.Errorf("Unable to ensure image %s exists: %v", image, err)
-		return err
+		return DockerError{"unable to ensure image " + image + " exists", err}
 	}
 
 	defer reader.Close()
@@ -40,7 +40,7 @@ func EnsureImage(ctx context.Context, cli *client.Client, image string) error {
 		var progress EnsureImageProgress
 		err := json.Unmarshal(line, &progress)
 		if err != nil {
-			logger.Error(line)
+			logger.Errorw("Unable to unmarshall bytes", "line", string(line))
 			continue
 		}
 

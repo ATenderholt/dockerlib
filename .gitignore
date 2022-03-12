@@ -1,0 +1,3 @@
+# Ignores the whole .idea folder and all .iml files
+.idea/
+
