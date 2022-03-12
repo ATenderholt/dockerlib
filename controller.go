@@ -10,17 +10,21 @@ import (
 	"time"
 )
 
+// Controller is used to represent a type that can Start, Shutdown, or ShutdownAll containers.
 type Controller interface {
 	Start(ctx context.Context, c Container, ready string) (chan bool, error)
 	Shutdown(ctx context.Context, c Container) error
 	ShutdownAll(ctx context.Context) error
 }
 
+// DockerController is a concrete type that can be used to control Docker containers
+// using its SDK.
 type DockerController struct {
 	cli     *client.Client
 	running map[string]Container
 }
 
+// NewDockerController is a helper method to create a new instance of a DockerController.
 func NewDockerController() (*Controller, error) {
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
@@ -35,6 +39,9 @@ func NewDockerController() (*Controller, error) {
 	return &c, nil
 }
 
+// Start is the method used to Start a Docker container using the specified Container c. It also automatically
+// follows logs and creates a channel that is used to indicate when a running container is ready according to the
+// provided ready string.
 func (controller DockerController) Start(ctx context.Context, c Container, ready string) (chan bool, error) {
 	logger := logger.Named(c.Name)
 
@@ -77,6 +84,7 @@ func (controller DockerController) Start(ctx context.Context, c Container, ready
 	return readyChan, nil
 }
 
+// Helper method to follow logs of running container.
 func (controller DockerController) followLogs(containerID string, containerName string, readyChan chan<- bool, readyText string) {
 	logOptions := types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true, Follow: true}
 
@@ -102,6 +110,7 @@ func (controller DockerController) followLogs(containerID string, containerName 
 	logger.Infof("Logs finished for container %s", containerName)
 }
 
+// Shutdown terminates and removes the specified running Container.
 func (controller DockerController) Shutdown(ctx context.Context, c Container) error {
 	logger.Infof("Trying to shutdown %s...", c)
 
@@ -123,6 +132,7 @@ func (controller DockerController) Shutdown(ctx context.Context, c Container) er
 	return nil
 }
 
+// ShutdownAll terminates and removes all running containers
 func (controller DockerController) ShutdownAll(ctx context.Context) error {
 	var allErrors []string
 	for _, c := range controller.running {
