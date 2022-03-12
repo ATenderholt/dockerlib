@@ -2,20 +2,19 @@ package dockerlib
 
 import (
 	"context"
-	"github.com/docker/docker/client"
 	"testing"
 )
 
 const TestImage = "alpine"
 
 func TestEnsureImage(t *testing.T) {
-	cli, err := client.NewClientWithOpts(client.FromEnv)
+	controller, err := NewDockerController()
 	if err != nil {
 		t.Error(err)
 		t.FailNow()
 	}
 
-	err = EnsureImage(context.Background(), cli, TestImage)
+	err = (*controller).EnsureImage(context.Background(), TestImage)
 	if err != nil {
 		t.Error(err)
 	}

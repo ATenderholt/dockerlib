@@ -2,6 +2,7 @@ package dockerlib
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -12,6 +13,7 @@ import (
 
 // Controller is used to represent a type that can Start, Shutdown, or ShutdownAll containers.
 type Controller interface {
+	EnsureImage(ctx context.Context, image string) error
 	Start(ctx context.Context, c Container, ready string) (chan bool, error)
 	Shutdown(ctx context.Context, c Container) error
 	ShutdownAll(ctx context.Context) error
@@ -37,6 +39,30 @@ func NewDockerController() (*Controller, error) {
 	var c Controller
 	c = DockerController{cli: cli, running: running}
 	return &c, nil
+}
+
+// EnsureImage is a helper method to pull the specified image to the local machine running Docker.
+func (controller DockerController) EnsureImage(ctx context.Context, image string) error {
+	reader, err := controller.cli.ImagePull(ctx, image, types.ImagePullOptions{})
+	if err != nil {
+		logger.Errorf("Unable to ensure image %s exists: %v", image, err)
+		return DockerError{"unable to ensure image " + image + " exists", err}
+	}
+
+	defer reader.Close()
+	lines := readLinesAsBytes(reader)
+	for line := range lines {
+		var progress EnsureImageProgress
+		err := json.Unmarshal(line, &progress)
+		if err != nil {
+			logger.Errorw("Unable to unmarshall bytes", "line", string(line))
+			continue
+		}
+
+		logger.Info(progress)
+	}
+
+	return nil
 }
 
 // Start is the method used to Start a Docker container using the specified Container c. It also automatically
