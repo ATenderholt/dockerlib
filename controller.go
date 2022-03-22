@@ -11,14 +11,6 @@ import (
 	"time"
 )
 
-// Controller is used to represent a type that can Start, Shutdown, or ShutdownAll containers.
-type Controller interface {
-	EnsureImage(ctx context.Context, image string) error
-	Start(ctx context.Context, c Container, ready string) (chan bool, error)
-	Shutdown(ctx context.Context, c Container) error
-	ShutdownAll(ctx context.Context) error
-}
-
 // DockerController is a concrete type that can be used to control Docker containers
 // using its SDK.
 type DockerController struct {
@@ -27,7 +19,7 @@ type DockerController struct {
 }
 
 // NewDockerController is a helper method to create a new instance of a DockerController.
-func NewDockerController() (*Controller, error) {
+func NewDockerController() (*DockerController, error) {
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		logger.Errorf("Unable to create Docker client: %v", err)
@@ -36,9 +28,7 @@ func NewDockerController() (*Controller, error) {
 
 	running := make(map[string]Container, 5)
 
-	var c Controller
-	c = DockerController{cli: cli, running: running}
-	return &c, nil
+	return &DockerController{cli: cli, running: running}, nil
 }
 
 // EnsureImage is a helper method to pull the specified image to the local machine running Docker.
