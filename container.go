@@ -15,6 +15,7 @@ type Container struct {
 	Ports       map[int]int
 	Command     []string
 	Environment []string
+	Network     []string
 }
 
 // Returns a simplified string representation
