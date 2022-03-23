@@ -1,8 +1,14 @@
 import logging
+import time
+import sys
 
 LOGGER = logging.getLogger()
 LOGGER.setLevel(logging.INFO)
 
 
-def handler(event, _):
-    LOGGER.info("Got event: %s", event)
+if __name__ == "__main__":
+    logging.basicConfig(stream=sys.stdout)
+
+    LOGGER.info("Hello!")
+    time.sleep(3)
+

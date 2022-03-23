@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-const TestImage = "mlupin/docker-lambda:python3.8"
+const TestImage = "python:3.9.11-alpine3.14"
 
 func TestEnsureImage(t *testing.T) {
 	controller, err := dockerlib.NewDockerController()
@@ -32,7 +32,7 @@ func TestBasicStartImage(t *testing.T) {
 		t.FailNow()
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	cwd, err := os.Getwd()
@@ -47,19 +47,19 @@ func TestBasicStartImage(t *testing.T) {
 		Mounts: []mount.Mount{
 			{
 				Source:      filepath.Join(cwd, "testdata"),
-				Target:      "/var/task",
+				Target:      "/scripts",
 				Type:        mount.TypeBind,
 				ReadOnly:    true,
 				Consistency: mount.ConsistencyDelegated,
 			},
 		},
 		Ports:       nil,
-		Command:     []string{"basic.handler"},
+		Command:     []string{"python", "/scripts/basic.py"},
 		Environment: nil,
 		Network:     nil,
 	}
 
-	ready, err := controller.Start(ctx, container, "Got event")
+	ready, err := controller.Start(ctx, container, "Hello")
 	if err != nil {
 		t.Error(err)
 	}
