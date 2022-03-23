@@ -1,13 +1,14 @@
-package dockerlib
+package dockerlib_test
 
 import (
+	"github.com/ATenderholt/dockerlib"
 	"github.com/docker/go-connections/nat"
 	"github.com/google/go-cmp/cmp"
 	"testing"
 )
 
 func TestContainerPortBindings(t *testing.T) {
-	container := Container{Ports: map[int]int{
+	container := dockerlib.Container{Ports: map[int]int{
 		123: 234,
 	}}
 
