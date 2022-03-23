@@ -3,6 +3,9 @@ package dockerlib_test
 import (
 	"context"
 	"github.com/ATenderholt/dockerlib"
+	"github.com/docker/docker/api/types/mount"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 )
@@ -22,7 +25,7 @@ func TestEnsureImage(t *testing.T) {
 	}
 }
 
-func TestStartImage(t *testing.T) {
+func TestBasicStartImage(t *testing.T) {
 	controller, err := dockerlib.NewDockerController()
 	if err != nil {
 		t.Error(err)
@@ -32,12 +35,26 @@ func TestStartImage(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	cwd, err := os.Getwd()
+	if err != nil {
+		t.Errorf("Unable to get cwd: %v", err)
+		t.FailNow()
+	}
+
 	container := dockerlib.Container{
-		Name:        "dockerlib-test",
-		Image:       TestImage,
-		Mounts:      nil,
+		Name:  "dockerlib-test",
+		Image: TestImage,
+		Mounts: []mount.Mount{
+			{
+				Source:      filepath.Join(cwd, "testdata"),
+				Target:      "/var/task",
+				Type:        mount.TypeBind,
+				ReadOnly:    true,
+				Consistency: mount.ConsistencyDelegated,
+			},
+		},
 		Ports:       nil,
-		Command:     nil,
+		Command:     []string{"basic.handler"},
 		Environment: nil,
 		Network:     nil,
 	}
