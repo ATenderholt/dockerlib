@@ -53,6 +53,7 @@ func (controller DockerController) attachNetworks(ctx context.Context, container
 			continue
 		}
 
+		logger.Infof("Attaching network %+v to container %s", nw, container.Name)
 		err := controller.cli.NetworkConnect(ctx, nw.ID, container.ID, &network.EndpointSettings{})
 		if err != nil {
 			logger.Errorf("Unable to attach network %s to container %s: %v", nw.Name, container.Name, err)

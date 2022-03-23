@@ -90,13 +90,13 @@ func (controller DockerController) Start(ctx context.Context, c Container, ready
 		logger.Errorf("Unable to start container %s: %v", c, err)
 		return nil, ContainerError{"unable to start container", c.Name, err}
 	}
+	c.ID = resp.ID
 
 	err = controller.attachNetworks(ctx, c)
 	if err != nil {
 		return nil, err
 	}
 
-	c.ID = resp.ID
 	controller.running[c.Name] = c
 
 	readyChan := make(chan bool)
