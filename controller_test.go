@@ -84,6 +84,13 @@ func TestStartWithNetwork(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
+	network := "dockerlib"
+	err = controller.EnsureNetwork(ctx, network)
+	if err != nil {
+		t.Errorf("Unable to create network: %v", err)
+	}
+	defer controller.CleanupNetworks(context.Background())
+
 	cwd, err := os.Getwd()
 	if err != nil {
 		t.Errorf("Unable to get cwd: %v", err)
@@ -112,7 +119,7 @@ func TestStartWithNetwork(t *testing.T) {
 		Ports:       nil,
 		Command:     []string{"python", "/scripts/server.py", "/site"},
 		Environment: nil,
-		Network:     []string{"dockerlib"},
+		Network:     []string{network},
 	}
 
 	client := dockerlib.Container{
@@ -130,7 +137,7 @@ func TestStartWithNetwork(t *testing.T) {
 		Ports:       nil,
 		Command:     []string{"python", "/scripts/client.py", "http://dockerlib-test-server:8000"},
 		Environment: nil,
-		Network:     []string{"dockerlib"},
+		Network:     []string{network},
 	}
 
 	ready, err := controller.Start(ctx, server, "Server started on port")

@@ -18,3 +18,13 @@ type ContainerError struct {
 func (e ContainerError) Error() string {
 	return e.msg + " " + e.containerName + ": " + e.baseError.Error()
 }
+
+type NetworkError struct {
+	msg         string
+	networkName string
+	baseError   error
+}
+
+func (e NetworkError) Error() string {
+	return e.msg + " " + e.networkName + ": " + e.baseError.Error()
+}

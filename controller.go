@@ -14,8 +14,9 @@ import (
 // DockerController is a concrete type that can be used to control Docker containers
 // using its SDK.
 type DockerController struct {
-	cli     *client.Client
-	running map[string]Container
+	cli      *client.Client
+	running  map[string]Container
+	networks map[string]string
 }
 
 // NewDockerController is a helper method to create a new instance of a DockerController.
@@ -26,9 +27,11 @@ func NewDockerController() (*DockerController, error) {
 		return nil, DockerError{"unable to create Docker client", err}
 	}
 
-	running := make(map[string]Container, 5)
-
-	return &DockerController{cli: cli, running: running}, nil
+	return &DockerController{
+		cli:      cli,
+		running:  make(map[string]Container, 5),
+		networks: make(map[string]string, 5),
+	}, nil
 }
 
 // EnsureImage is a helper method to pull the specified image to the local machine running Docker.
@@ -52,6 +55,32 @@ func (controller DockerController) EnsureImage(ctx context.Context, image string
 		logger.Info(progress)
 	}
 
+	return nil
+}
+
+// EnsureNetwork Creates a bridge network for the given name if it doesn't already exist.
+func (controller DockerController) EnsureNetwork(ctx context.Context, name string) error {
+	logger.Info("Listing networks")
+	networks, err := controller.cli.NetworkList(ctx, types.NetworkListOptions{})
+	if err != nil {
+		logger.Errorf("Unable to list networks: %v", err)
+		return DockerError{"unable to list networks", err}
+	}
+
+	for _, network := range networks {
+		if network.Name == name {
+			logger.Infof("Network %s already exists, returning", name)
+			return nil
+		}
+	}
+
+	network, err := controller.cli.NetworkCreate(ctx, name, types.NetworkCreate{})
+	if err != nil {
+		logger.Errorf("Unable to create network %s: %v", name, err)
+		return NetworkError{"unable to create network", name, err}
+	}
+
+	controller.networks[name] = network.ID
 	return nil
 }
 
@@ -140,6 +169,23 @@ func (controller DockerController) ShutdownAll(ctx context.Context) error {
 	msg := strings.Join(allErrors, ",")
 	if len(msg) > 0 {
 		return errors.New("errors encountered when shutting down all containers: " + msg)
+	}
+
+	return nil
+}
+
+func (controller DockerController) CleanupNetworks(ctx context.Context) error {
+	var allErrors []string
+	for _, id := range controller.networks {
+		err := controller.cli.NetworkRemove(ctx, id)
+		if err != nil {
+			allErrors = append(allErrors, err.Error())
+		}
+	}
+
+	msg := strings.Join(allErrors, ",")
+	if len(msg) > 0 {
+		return errors.New("errors encountered when cleaning up networks: " + msg)
 	}
 
 	return nil
