@@ -9,7 +9,7 @@ import (
 )
 
 // Helper method to follow logs of running container.
-func (controller DockerController) followLogs(containerID string, containerName string, readyChan chan<- bool, readyText string) {
+func (controller *DockerController) followLogs(containerID string, containerName string, readyChan chan<- bool, readyText string) {
 	logOptions := types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true, Follow: true}
 
 	// logs need to be in background context so they aren't canceled before container.
@@ -34,7 +34,7 @@ func (controller DockerController) followLogs(containerID string, containerName 
 	logger.Infof("Logs finished for container %s", containerName)
 }
 
-func (controller DockerController) attachNetworks(ctx context.Context, container Container) error {
+func (controller *DockerController) attachNetworks(ctx context.Context, container Container) error {
 	networks, err := controller.cli.NetworkList(ctx, types.NetworkListOptions{})
 	if err != nil {
 		logger.Errorf("Unable to list networks: %v", err)

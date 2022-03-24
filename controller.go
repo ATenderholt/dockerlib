@@ -35,7 +35,7 @@ func NewDockerController() (*DockerController, error) {
 }
 
 // EnsureImage is a helper method to pull the specified image to the local machine running Docker.
-func (controller DockerController) EnsureImage(ctx context.Context, image string) error {
+func (controller *DockerController) EnsureImage(ctx context.Context, image string) error {
 	reader, err := controller.cli.ImagePull(ctx, image, types.ImagePullOptions{})
 	if err != nil {
 		logger.Errorf("Unable to ensure image %s exists: %v", image, err)
@@ -59,7 +59,7 @@ func (controller DockerController) EnsureImage(ctx context.Context, image string
 }
 
 // EnsureNetwork Creates a bridge network for the given name if it doesn't already exist.
-func (controller DockerController) EnsureNetwork(ctx context.Context, name string) error {
+func (controller *DockerController) EnsureNetwork(ctx context.Context, name string) error {
 	logger.Info("Listing networks")
 	networks, err := controller.cli.NetworkList(ctx, types.NetworkListOptions{})
 	if err != nil {
@@ -87,7 +87,7 @@ func (controller DockerController) EnsureNetwork(ctx context.Context, name strin
 // Start is the method used to Start a Docker container using the specified Container c. It also automatically
 // follows logs and creates a channel that is used to indicate when a running container is ready according to the
 // provided ready string.
-func (controller DockerController) Start(ctx context.Context, c Container, ready string) (chan bool, error) {
+func (controller *DockerController) Start(ctx context.Context, c Container, ready string) (chan bool, error) {
 	logger := logger.Named(c.Name)
 
 	portSet, portMap, err := c.PortBindings()
@@ -135,7 +135,7 @@ func (controller DockerController) Start(ctx context.Context, c Container, ready
 }
 
 // Shutdown terminates and removes the specified running Container.
-func (controller DockerController) Shutdown(ctx context.Context, c Container) error {
+func (controller *DockerController) Shutdown(ctx context.Context, c Container) error {
 	logger.Infof("Trying to shutdown %s...", c)
 
 	timeout := 30 * time.Second
@@ -157,7 +157,7 @@ func (controller DockerController) Shutdown(ctx context.Context, c Container) er
 }
 
 // ShutdownAll terminates and removes all running containers
-func (controller DockerController) ShutdownAll(ctx context.Context) error {
+func (controller *DockerController) ShutdownAll(ctx context.Context) error {
 	var allErrors []string
 	for _, c := range controller.running {
 		err := controller.Shutdown(ctx, c)
@@ -174,7 +174,7 @@ func (controller DockerController) ShutdownAll(ctx context.Context) error {
 	return nil
 }
 
-func (controller DockerController) CleanupNetworks(ctx context.Context) error {
+func (controller *DockerController) CleanupNetworks(ctx context.Context) error {
 	var allErrors []string
 	for _, id := range controller.networks {
 		err := controller.cli.NetworkRemove(ctx, id)
