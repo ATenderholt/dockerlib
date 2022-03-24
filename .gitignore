@@ -1,3 +1,6 @@
 # Ignores the whole .idea folder and all .iml files
 .idea/
 
+# Copied into readme, so don't need to re-duplicate here.
+docs.md
+
