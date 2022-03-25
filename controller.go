@@ -134,7 +134,7 @@ func (controller *DockerController) Start(ctx context.Context, c Container, read
 	return readyChan, nil
 }
 
-// Shutdown terminates and removes the specified running Container.
+// Shutdown terminates the specified running Container based on its ID.
 func (controller *DockerController) Shutdown(ctx context.Context, c Container) error {
 	logger.Infof("Trying to shutdown %s...", c)
 
@@ -146,8 +146,14 @@ func (controller *DockerController) Shutdown(ctx context.Context, c Container) e
 	}
 
 	delete(controller.running, c.Name)
+	return nil
+}
 
-	err = controller.cli.ContainerRemove(ctx, c.ID, types.ContainerRemoveOptions{})
+// Remove removes the specified (stopped) container based on its ID.
+func (controller *DockerController) Remove(ctx context.Context, c Container) error {
+	logger.Infof("Trying to remove %s...", c)
+
+	err := controller.cli.ContainerRemove(ctx, c.ID, types.ContainerRemoveOptions{})
 	if err != nil {
 		logger.Errorf("Unable to remove container %s: %v", c, err)
 		return ContainerError{"unable to remove container", c.Name, err}
@@ -161,6 +167,10 @@ func (controller *DockerController) ShutdownAll(ctx context.Context) error {
 	var allErrors []string
 	for _, c := range controller.running {
 		err := controller.Shutdown(ctx, c)
+		if err != nil {
+			allErrors = append(allErrors, err.Error())
+		}
+		err = controller.Remove(ctx, c)
 		if err != nil {
 			allErrors = append(allErrors, err.Error())
 		}
