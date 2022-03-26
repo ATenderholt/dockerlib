@@ -50,25 +50,26 @@ controller.CleanupNetworks(ctx)
 
 - [func SetLogger(newLogger *zap.Logger)](<#func-setlogger>)
 - [type Container](<#type-container>)
-    - [func (c Container) PortBindings() (map[nat.Port]struct{}, map[nat.Port][]nat.PortBinding, error)](<#func-container-portbindings>)
-    - [func (c Container) String() string](<#func-container-string>)
+  - [func (c Container) PortBindings() (map[nat.Port]struct{}, map[nat.Port][]nat.PortBinding, error)](<#func-container-portbindings>)
+  - [func (c Container) String() string](<#func-container-string>)
 - [type ContainerError](<#type-containererror>)
-    - [func (e ContainerError) Error() string](<#func-containererror-error>)
+  - [func (e ContainerError) Error() string](<#func-containererror-error>)
 - [type DockerController](<#type-dockercontroller>)
-    - [func NewDockerController() (*DockerController, error)](<#func-newdockercontroller>)
-    - [func (controller *DockerController) CleanupNetworks(ctx context.Context) error](<#func-dockercontroller-cleanupnetworks>)
-    - [func (controller *DockerController) EnsureImage(ctx context.Context, image string) error](<#func-dockercontroller-ensureimage>)
-    - [func (controller *DockerController) EnsureNetwork(ctx context.Context, name string) error](<#func-dockercontroller-ensurenetwork>)
-    - [func (controller *DockerController) Shutdown(ctx context.Context, c Container) error](<#func-dockercontroller-shutdown>)
-    - [func (controller *DockerController) ShutdownAll(ctx context.Context) error](<#func-dockercontroller-shutdownall>)
-    - [func (controller *DockerController) Start(ctx context.Context, c Container, ready string) (chan bool, error)](<#func-dockercontroller-start>)
+  - [func NewDockerController() (*DockerController, error)](<#func-newdockercontroller>)
+  - [func (controller *DockerController) CleanupNetworks(ctx context.Context) error](<#func-dockercontroller-cleanupnetworks>)
+  - [func (controller *DockerController) EnsureImage(ctx context.Context, image string) error](<#func-dockercontroller-ensureimage>)
+  - [func (controller *DockerController) EnsureNetwork(ctx context.Context, name string) error](<#func-dockercontroller-ensurenetwork>)
+  - [func (controller *DockerController) Remove(ctx context.Context, c Container) error](<#func-dockercontroller-remove>)
+  - [func (controller *DockerController) Shutdown(ctx context.Context, c Container) error](<#func-dockercontroller-shutdown>)
+  - [func (controller *DockerController) ShutdownAll(ctx context.Context) error](<#func-dockercontroller-shutdownall>)
+  - [func (controller *DockerController) Start(ctx context.Context, c Container, ready string) (chan bool, error)](<#func-dockercontroller-start>)
 - [type DockerError](<#type-dockererror>)
-    - [func (e DockerError) Error() string](<#func-dockererror-error>)
+  - [func (e DockerError) Error() string](<#func-dockererror-error>)
 - [type EnsureImageProgress](<#type-ensureimageprogress>)
-    - [func (p EnsureImageProgress) String() string](<#func-ensureimageprogress-string>)
+  - [func (p EnsureImageProgress) String() string](<#func-ensureimageprogress-string>)
 - [type EnsureImageProgressDetail](<#type-ensureimageprogressdetail>)
 - [type NetworkError](<#type-networkerror>)
-    - [func (e NetworkError) Error() string](<#func-networkerror-error>)
+  - [func (e NetworkError) Error() string](<#func-networkerror-error>)
 
 
 ## func SetLogger
@@ -164,13 +165,21 @@ func (controller *DockerController) EnsureNetwork(ctx context.Context, name stri
 
 EnsureNetwork Creates a bridge network for the given name if it doesn't already exist\.
 
+### func \(\*DockerController\) Remove
+
+```go
+func (controller *DockerController) Remove(ctx context.Context, c Container) error
+```
+
+Remove removes the specified \(stopped\) container based on its ID\.
+
 ### func \(\*DockerController\) Shutdown
 
 ```go
 func (controller *DockerController) Shutdown(ctx context.Context, c Container) error
 ```
 
-Shutdown terminates and removes the specified running Container\.
+Shutdown terminates the specified running Container based on its ID\.
 
 ### func \(\*DockerController\) ShutdownAll
 
@@ -204,7 +213,7 @@ func (e DockerError) Error() string
 
 ## type EnsureImageProgress
 
-EnsureImageProgress is an object to unmarshall JSON returned from Docker during a pull.
+EnsureImageProgress is an object to unmarshall JSON returned from Docker during a pull\.
 
 ```go
 type EnsureImageProgress struct {
@@ -223,7 +232,7 @@ func (p EnsureImageProgress) String() string
 
 ## type EnsureImageProgressDetail
 
-EnsureImageProgressDetail is an object to help unmarshall JSON returned from Docker during a pull.
+EnsureImageProgressDetail is an object to help unmarshall JSON returned from Docker during a pull\.
 
 ```go
 type EnsureImageProgressDetail struct {
