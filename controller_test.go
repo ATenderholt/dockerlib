@@ -59,7 +59,7 @@ func TestBasicStartImage(t *testing.T) {
 		Network:     nil,
 	}
 
-	ready, err := controller.Start(ctx, container, "Hello")
+	ready, err := controller.Start(ctx, &container, "Hello")
 	if err != nil {
 		t.Error(err)
 	}
@@ -140,7 +140,7 @@ func TestStartWithNetwork(t *testing.T) {
 		Network:     []string{network},
 	}
 
-	ready, err := controller.Start(ctx, server, "Server started on port")
+	ready, err := controller.Start(ctx, &server, "Server started on port")
 	if err != nil {
 		t.Error(err)
 		t.FailNow()
@@ -154,7 +154,7 @@ func TestStartWithNetwork(t *testing.T) {
 		t.FailNow()
 	}
 
-	status, err := controller.Start(ctx, client, "Status")
+	status, err := controller.Start(ctx, &client, "Status")
 	if err != nil {
 		t.Error(err)
 		t.FailNow()

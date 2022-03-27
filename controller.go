@@ -87,7 +87,7 @@ func (controller *DockerController) EnsureNetwork(ctx context.Context, name stri
 // Start is the method used to Start a Docker container using the specified Container c. It also automatically
 // follows logs and creates a channel that is used to indicate when a running container is ready according to the
 // provided ready string.
-func (controller *DockerController) Start(ctx context.Context, c Container, ready string) (chan bool, error) {
+func (controller *DockerController) Start(ctx context.Context, c *Container, ready string) (chan bool, error) {
 	logger := logger.Named(c.Name)
 
 	portSet, portMap, err := c.PortBindings()
@@ -121,12 +121,12 @@ func (controller *DockerController) Start(ctx context.Context, c Container, read
 	}
 	c.ID = resp.ID
 
-	err = controller.attachNetworks(ctx, c)
+	err = controller.attachNetworks(ctx, *c)
 	if err != nil {
 		return nil, err
 	}
 
-	controller.running[c.Name] = c
+	controller.running[c.Name] = *c
 
 	readyChan := make(chan bool)
 	go controller.followLogs(resp.ID, c.Name, readyChan, ready)
