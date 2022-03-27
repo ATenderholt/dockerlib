@@ -134,6 +134,22 @@ func (controller *DockerController) Start(ctx context.Context, c *Container, rea
 	return readyChan, nil
 }
 
+// WaitForShutdown blocks until the specified Container has shutdown or errors within given timeout.
+func (controller *DockerController) WaitForShutdown(ctx context.Context, c Container, timeout time.Duration) error {
+	timeoutCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	okC, errC := controller.cli.ContainerWait(timeoutCtx, c.ID, container.WaitConditionNotRunning)
+	select {
+	case <-okC:
+		return nil
+	case err := <-errC:
+		e := DockerError{"error when waiting for container " + c.Name, err}
+		logger.Error(e)
+		return e
+	}
+}
+
 // Shutdown terminates the specified running Container based on its ID.
 func (controller *DockerController) Shutdown(ctx context.Context, c Container) error {
 	logger.Infof("Trying to shutdown %s...", c)
