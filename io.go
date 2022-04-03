@@ -5,7 +5,7 @@ import (
 	"io"
 )
 
-func readLinesAsBytes(reader io.Reader) <-chan []byte {
+func ReadLinesAsBytes(reader io.Reader) <-chan []byte {
 	lines := make(chan []byte)
 	buffer := make([]byte, 1024)
 	leftover := make([]byte, 0)
@@ -21,15 +21,17 @@ func readLinesAsBytes(reader io.Reader) <-chan []byte {
 				logger.Debugf("Before: %s %s", leftover, parts[0])
 				leftover = append(leftover, parts[0]...)
 				logger.Debugf("After : %s", leftover)
+
+				leftover = bytes.Trim(leftover, "\r")
 				lines <- leftover
 
 				// send middle parts
 				for i := 1; i < len(parts)-1; i++ {
-					lines <- parts[i]
+					lines <- bytes.Trim(parts[i], "\r")
 				}
 
 				// save continuation
-				leftover = parts[len(parts)-1]
+				leftover = bytes.Trim(parts[len(parts)-1], "\r")
 			}
 
 			switch {

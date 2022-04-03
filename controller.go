@@ -43,7 +43,7 @@ func (controller *DockerController) EnsureImage(ctx context.Context, image strin
 	}
 
 	defer reader.Close()
-	lines := readLinesAsBytes(reader)
+	lines := ReadLinesAsBytes(reader)
 	for line := range lines {
 		var progress EnsureImageProgress
 		err := json.Unmarshal(line, &progress)

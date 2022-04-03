@@ -21,7 +21,7 @@ func (controller *DockerController) followLogs(containerID string, containerName
 	defer reader.Close()
 
 	cLogger := logger.Named(containerName)
-	lines := readLinesAsBytes(reader)
+	lines := ReadLinesAsBytes(reader)
 	for line := range lines {
 		text := string(line)
 		cLogger.Info(text)
