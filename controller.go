@@ -216,3 +216,38 @@ func (controller *DockerController) CleanupNetworks(ctx context.Context) error {
 
 	return nil
 }
+
+func (controller DockerController) GetContainerHostPath(ctx context.Context, name string, path string) (string, error) {
+	containers, err := controller.cli.ContainerList(ctx, types.ContainerListOptions{})
+	if err != nil {
+		logger.Errorf("Unable to list containers: %v", err)
+		return "", err
+	}
+
+	for _, c := range containers {
+		if !contains(c.Names, name) {
+			continue
+		}
+
+		for _, m := range c.Mounts {
+			if m.Destination == path {
+				offset := len("/host_mnt")
+				return m.Source[offset:], nil
+			}
+		}
+	}
+
+	logger.Warnf("Unable to find container %s with path %s", name, path)
+
+	return "", nil
+}
+
+func contains(values []string, value string) bool {
+	for _, v := range values {
+		if strings.Contains(v, value) {
+			return true
+		}
+	}
+
+	return false
+}

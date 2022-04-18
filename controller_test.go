@@ -169,3 +169,76 @@ func TestStartWithNetwork(t *testing.T) {
 		t.FailNow()
 	}
 }
+
+func TestGetContainerHostPath(t *testing.T) {
+	controller, err := dockerlib.NewDockerController()
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	network := "dockerlib"
+	err = controller.EnsureNetwork(ctx, network)
+	if err != nil {
+		t.Errorf("Unable to create network: %v", err)
+	}
+	defer controller.CleanupNetworks(context.Background())
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		t.Errorf("Unable to get cwd: %v", err)
+		t.FailNow()
+	}
+
+	server := dockerlib.Container{
+		Name:  "dockerlib-test-server",
+		Image: TestImage,
+		Mounts: []mount.Mount{
+			{
+				Source:      filepath.Join(cwd, "testdata", "server.py"),
+				Target:      "/scripts/server.py",
+				Type:        mount.TypeBind,
+				ReadOnly:    true,
+				Consistency: mount.ConsistencyDelegated,
+			},
+			{
+				Source:      filepath.Join(cwd, "testdata", "hello.txt"),
+				Target:      "/site/hello.txt",
+				Type:        mount.TypeBind,
+				ReadOnly:    true,
+				Consistency: mount.ConsistencyDelegated,
+			},
+		},
+		Ports:       nil,
+		Command:     []string{"python", "/scripts/server.py", "/site"},
+		Environment: nil,
+		Network:     []string{network},
+	}
+
+	ready, err := controller.Start(ctx, &server, "Server started on port")
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+	defer controller.ShutdownAll(context.Background())
+
+	select {
+	case <-ready:
+	case <-ctx.Done():
+		t.Error("Test timeout - server didn't start.")
+		t.FailNow()
+	}
+
+	path, err := controller.GetContainerHostPath(ctx, "dockerlib-test-server", "/site/hello.txt")
+	if err != nil {
+		t.Fatalf("Error when getting container host path: %v", err)
+	}
+
+	expected := filepath.Join(cwd, "testdata", "hello.txt")
+	if path != expected {
+		t.Errorf("Expected host path to be %s, but got %s", expected, path)
+	}
+}
